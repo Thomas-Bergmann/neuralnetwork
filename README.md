@@ -64,14 +64,14 @@ nn.guess(testingData);
 Read and write from/to file:
 ```java
 import de.hatoka.basicneuralnetwork.utilities.FileReaderAndWriter;
-FileReaderAndWriter networkReader = new FileReaderAndWriter()
+FileReaderAndWriter networkReaderWriter = new FileReaderAndWriter()
 Path file = Files.createTempFile("neuro1_", ".json");
-underTest.write(network, file);
+networkReaderWriter.write(network, file);
 
 // Reads from a JSON-resource the nn-Data and returns a NeuralNetwork-object
-NeuralNetwork networkViaResource = networkReader.read(this.getClass().getClassLoader().getResourceAsStream(resource));
+NeuralNetwork networkViaResource = networkReaderWriter.read(this.getClass().getClassLoader().getResourceAsStream(resource));
 // Load from a specifiy file
-NeuralNetwork networkViaFile = networkReader.read(file);
+NeuralNetwork networkViaFile = networkReaderWriter.read(file);
 ```
 
 Adjust the learning rate:
@@ -86,7 +86,7 @@ nn.getLearningRate();
 Use different activation functions:
 ```java
 // Set the activation function (By default Sigmoid will be used)
-nn.setLearningRate(ActivationFunction.TANH);
+nn.setActivationFunction(ActivationFunctions.TANH);
 
 // Get name of currently used activation function
 nn.getActivationFunctionName();

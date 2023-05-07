@@ -1,47 +1,25 @@
 package de.hatoka.basicneuralnetwork.activationfunctions;
 
-import org.ejml.simple.SimpleMatrix;
-
 /**
- * Created by KimFeichtinger on 26.04.18.
+ * ReLuActivationFunction 
+ * <ul>
+ * <li>activate: if 0 &lt; input then input else 0</li>
+ * <li>invert:   if 0 &lt; input then 1     else 0</li>
+ * </ul>
+ * @author KimFeichtinger
+ * @author tbergmann (reduced to function) 
  */
-public class ReLuActivationFunction implements ActivationFunction {
-
-    private static final String NAME = "RELU";
-
-    public SimpleMatrix applyActivationFunctionToMatrix(SimpleMatrix input) {
-        SimpleMatrix output = new SimpleMatrix(input.numRows(), input.numCols());
-
-        for (int i = 0; i < input.numRows(); i++) {
-            // Column is always 0 because input has only one column
-            double value = input.get(i, 0);
-            double result = value > 0 ? value : 0;
-
-            output.set(i, 0, result);
-        }
-
-        // Formula:
-        // for input < 0: 0, else input
-        return output;
+public class ReLuActivationFunction implements ActivationFunction
+{
+    @Override
+    public double activate(double input)
+    {
+        return 0 < input ? input : 0;
     }
 
-    public SimpleMatrix applyDerivativeOfActivationFunctionToMatrix(SimpleMatrix input) {
-        SimpleMatrix output = new SimpleMatrix(input.numRows(), input.numCols());
-
-        for (int i = 0; i < input.numRows(); i++) {
-            // Column is always 0 because input has only one column
-            double value = input.get(i, 0);
-            double result = value > 0 ? 1 : 0;
-
-            output.set(i, 0, result);
-        }
-
-        // Formula:
-        // for input > 0: 1, else 0
-        return output;
-    }
-
-    public String getName() {
-        return NAME;
+    @Override
+    public double invert(double input)
+    {
+        return 0 < input ? 1 : 0;
     }
 }
