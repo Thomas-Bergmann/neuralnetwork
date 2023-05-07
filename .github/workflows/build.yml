@@ -25,32 +25,10 @@ jobs:
       - uses: actions/checkout@v3
       - name: Create .gradle dir
         run: mkdir -p $HOME/.gradle
-      - id: install-secret-key
-        name: Install gpg secret key
-        env:
-          SIGNINGFILE: ${{ secrets.SIGNINGFILE }}
-        run: |
-          cat <(echo -e "${{ secrets.SIGNINGFILE }}") | gpg --batch --import
-          gpg --list-secret-keys --keyid-format LONG
-      - id: export-gpg-file
-        name: Export gpg file
-        env:
-          SIGNINGKEYID: ${{ secrets.SIGNINGKEYID }}
-          SIGNINGPASSWORD: ${{ secrets.SIGNINGPASSWORD }}
-        run: |
-          gpg --batch --passphrase="$SIGNINGPASSWORD" --pinentry-mode loopback --export-secret-keys $SIGNINGKEYID > $HOME/.gradle/secrets.gpg
-      - name: Create gradle properties
-        env:
-          SIGNINGKEYID: ${{ secrets.SIGNINGKEYID }}
-          SIGNINGPASSWORD: ${{ secrets.SIGNINGPASSWORD }}
-          SONATYPEPASSWORD: ${{ secrets.SONATYPEPASSWORD }}
-          SONATYPEUSER: ${{ secrets.SONATYPEUSER }}
-          SONATYPEREPO: ${{ vars.SONATYPEREPOSNAPSHOT }}
-        run: echo -e "signing.keyId=$SIGNINGKEYID\nsigning.password=$SIGNINGPASSWORD\nsigning.secretKeyRingFile=$HOME/.gradle/secrets.gpg\nsonatypeUsername=$SONATYPEUSER\nsonatypePassword=$SONATYPEPASSWORD\nsonatypeRepo=$SONATYPEREPO" > $HOME/.gradle/gradle.properties
       - name: Run gradle release
         env:
           JAVA_OPTS: "-Xmx1024M"
           GRADLE_OPTS: "-Dorg.gradle.daemon=true"
-        run: ./gradlew -Pversion=1.0.0-SNAPSHOT test build :publishHatokaMvnPublicationToMavenRepository -s
+        run: ./gradlew -Pversion=1.0.0-SNAPSHOT test -s
       - name: Post Build
         run: rm -f $HOME/.gradle/gradle.properties
