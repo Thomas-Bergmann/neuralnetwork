@@ -101,7 +101,7 @@ signing {
 dependencies {
     // implementation(gradleApi())
     implementation("org.ejml:ejml-all:0.33")
-    implementation("com.google.code.gson:gson:2.8.4")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.slf4j:slf4j-api:2.0.7")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.6")
 
