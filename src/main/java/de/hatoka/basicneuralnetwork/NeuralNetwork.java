@@ -45,7 +45,7 @@ public class NeuralNetwork
     // nodes in the individual layers
     public NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes)
     {
-        this(inputNodes, 1, hiddenNodes, outputNodes);
+        this(inputNodes, hiddenNodes > 0 ? 1 : 0, hiddenNodes, outputNodes);
     }
 
     // Constructor
@@ -98,28 +98,35 @@ public class NeuralNetwork
         this.setActivationFunction(ActivationFunctions.SIGMOID);
     }
 
+    /**
+     * Initialize weights with random numbers between -1 and 1
+     */
     private void initializeWeights()
     {
         weights = new SimpleMatrix[hiddenLayers + 1];
 
+        // 1st weights that connects inputs to first hidden nodes or output nodes if no hidden nodes exist
+        weights[0] = SimpleMatrix.random64(hiddenNodes == 0 ? outputNodes : hiddenNodes, inputNodes, -1, 1, random);
+
         // Initialize the weights between the layers and fill them with random values
-        for (int i = 0; i < weights.length; i++)
+        for (int i = 1; i < weights.length; i++)
         {
-            if (i == 0)
-            { // 1st weights that connects inputs to first hidden layer
-                weights[i] = SimpleMatrix.random64(hiddenNodes, inputNodes, -1, 1, random);
-            }
-            else if (i == weights.length - 1)
-            { // last weights that connect last hidden layer to output
+            if (i == weights.length - 1)
+            {
+                // last weights that connect last hidden layer to output
                 weights[i] = SimpleMatrix.random64(outputNodes, hiddenNodes, -1, 1, random);
             }
             else
-            { // everything else
+            {
+                // everything else
                 weights[i] = SimpleMatrix.random64(hiddenNodes, hiddenNodes, -1, 1, random);
             }
         }
     }
 
+    /**
+     * Each hidden layer and the output layer gets a biases as additional input
+     */
     private void initializeBiases()
     {
         biases = new SimpleMatrix[hiddenLayers + 1];
@@ -138,27 +145,25 @@ public class NeuralNetwork
         }
     }
 
-    // Guess method, input is a one column matrix with the input values
+    /**
+     * @param input list of input values for the network
+     * @return list of output values calculated (guess) by the network via forward propagation
+     */
     public double[] guess(double[] input)
     {
         if (input.length != inputNodes)
         {
             throw new WrongDimensionException(input.length, inputNodes, "Input");
         }
-        else
+        ActivationFunction activationFunction = activationFunctionKey.getFunction();
+
+        // Transform array to matrix
+        SimpleMatrix output = MatrixUtilities.arrayToMatrix(input);
+        for (int i = 0; i < hiddenLayers + 1; i++)
         {
-            ActivationFunction activationFunction = activationFunctionKey.getFunction();
-
-            // Transform array to matrix
-            SimpleMatrix output = MatrixUtilities.arrayToMatrix(input);
-
-            for (int i = 0; i < hiddenLayers + 1; i++)
-            {
-                output = calculateLayer(weights[i], biases[i], output, activationFunction);
-            }
-
-            return MatrixUtilities.getColumnFromMatrixAsArray(output, 0);
+            output = calculateLayer(weights[i], biases[i], output, activationFunction);
         }
+        return MatrixUtilities.getColumnFromMatrixAsArray(output, 0);
     }
 
     public void train(double[] inputArray, double[] targetArray)
