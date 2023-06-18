@@ -164,4 +164,19 @@ class NeuralNetworkTest {
         nn.setActivationFunction(ActivationFunctions.TANH);
         assertEquals(ActivationFunctions.TANH.name(), nn.getActivationFunctionName());
     }
+
+    @Test
+    public void testNetworkWithNoHiddenNodes() {
+        NeuralNetwork noHiddenNodesNN = new NeuralNetwork(3, 0, 2);
+        assertEquals(0, noHiddenNodesNN.getHiddenNodes());
+        assertEquals(0, noHiddenNodesNN.getHiddenLayers());
+        // one matrix for layer between input and output
+        assertEquals(1, noHiddenNodesNN.getWeights().length);
+        SimpleMatrix matrix = noHiddenNodesNN.getWeights()[0];
+        assertEquals(6, matrix.getNumElements());
+        for(int element= 0; element < matrix.getNumElements(); element++)
+        {
+            assertNotEquals(0, matrix.get(element));
+        }
+    }
 }
