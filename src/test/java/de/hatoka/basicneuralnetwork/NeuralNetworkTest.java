@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunctions;
+import de.hatoka.basicneuralnetwork.utilities.FileReaderAndWriter;
 
 class NeuralNetworkTest {
 
@@ -23,7 +24,7 @@ class NeuralNetworkTest {
 
     @BeforeEach
     public void setup() {
-        nn = new NeuralNetwork(inputNodes, hiddenLayers, hiddenNodes, outputNodes);
+        nn = NeuralNetwork.build(inputNodes, hiddenLayers, hiddenNodes, outputNodes);
     }
 
     @Test
@@ -118,13 +119,13 @@ class NeuralNetworkTest {
 
     @Test
     public void mergeTestWrongDimension() {
-        Throwable exception = assertThrows(WrongDimensionException.class, () -> nn.merge(new NeuralNetwork(2,3,4,5)));
+        Throwable exception = assertThrows(WrongDimensionException.class, () -> nn.merge(NeuralNetwork.build(2,3,4,5)));
         assertEquals("The dimensions of these two neural networks don't match: [1, 2, 3, 4], [2, 3, 4, 5]", exception.getMessage());
     }
 
     @Test
     public void mergeTest() {
-        NeuralNetwork nnB = new NeuralNetwork(1,2,3,4);
+        NeuralNetwork nnB = NeuralNetwork.build(1,2,3,4);
         NeuralNetwork result = nn.merge(nnB);
 
         assertNotEquals(nn, result);
@@ -167,7 +168,7 @@ class NeuralNetworkTest {
 
     @Test
     public void testNetworkWithNoHiddenNodes() {
-        NeuralNetwork noHiddenNodesNN = new NeuralNetwork(3, 0, 2);
+        NeuralNetwork noHiddenNodesNN = NeuralNetwork.build(3, 0, 2);
         assertEquals(0, noHiddenNodesNN.getHiddenNodes());
         assertEquals(0, noHiddenNodesNN.getHiddenLayers());
         // one matrix for layer between input and output
@@ -178,5 +179,43 @@ class NeuralNetworkTest {
         {
             assertNotEquals(0, matrix.get(element));
         }
+    }
+
+    @Test
+    public void testOr() {
+        NeuralNetwork nn = NeuralNetwork.build(2, 0, 1);
+        for(int i=0;i<2_000;i++)
+        {
+            nn.train(asArray(0,0), asArray(0));
+            nn.train(asArray(0,1), asArray(1));
+            nn.train(asArray(1,0), asArray(1));
+            nn.train(asArray(1,1), asArray(1));
+        }
+        assertTrue(nn.guess(asArray(0,0))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(0,0))[0]);
+        assertTrue(nn.guess(asArray(0,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(0,1))[0]);
+        assertTrue(nn.guess(asArray(1,0))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,0))[0]);
+        assertTrue(nn.guess(asArray(1,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,1))[0]);
+    }
+
+    @Test
+    public void testXOr() {
+        NeuralNetwork nn = NeuralNetwork.build(2, 4, 1);
+        for(int i=0;i<2_000;i++)
+        {
+            nn.train(asArray(0,0), asArray(0));
+            nn.train(asArray(0,1), asArray(1));
+            nn.train(asArray(1,0), asArray(1));
+            nn.train(asArray(1,1), asArray(0));
+        }
+        System.out.println(new FileReaderAndWriter().asJson(nn));
+        assertTrue(nn.guess(asArray(0,0))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(0,0))[0]);
+        assertTrue(nn.guess(asArray(0,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(0,1))[0]);
+        assertTrue(nn.guess(asArray(1,0))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,0))[0]);
+        assertTrue(nn.guess(asArray(1,1))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(1,1))[0]);
+    }
+
+    private double[] asArray(double... values)
+    {
+        return values;
     }
 }

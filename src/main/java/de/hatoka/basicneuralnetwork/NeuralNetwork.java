@@ -17,7 +17,17 @@ import de.hatoka.basicneuralnetwork.utilities.MatrixUtilities;
  */
 public class NeuralNetwork
 {
-    private Random random = new Random();
+    /**
+     * randomizer to create a random seed for the random of the network (can be used for testing)
+     */
+    private static final Random initRandom = new Random();
+
+    /**
+     * randomizer to initialize the network
+     */
+    private final Random random;
+    @Expose(serialize = true, deserialize = true)
+    private final long seed;
 
     // Dimensions of the neural network
     @Expose(serialize = true, deserialize = true)
@@ -40,37 +50,65 @@ public class NeuralNetwork
     @Expose(serialize = true, deserialize = true)
     private ActivationFunctions activationFunctionKey;
 
-    // Constructor
-    // Generate a new neural network with 1 hidden layer with the given amount of
-    // nodes in the individual layers
-    public NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes)
+    /**
+     * Generate a new neural network with 1 hidden layer with the given amount of
+     * @param inputNodes number of input nodes
+     * @param hiddenNodes number of hidden nodes
+     * @param outputNodes number of output nodes
+     * @return generated network
+     */
+    public static NeuralNetwork build(int inputNodes, int hiddenNodes, int outputNodes)
     {
-        this(inputNodes, hiddenNodes > 0 ? 1 : 0, hiddenNodes, outputNodes);
+        return build(inputNodes, 1, hiddenNodes, outputNodes);
     }
 
-    // Constructor
-    // Generate a new neural network with a given amount of hidden layers with the
-    // given amount of nodes in the individual layers
-    // Every hidden layer will have the same amount of nodes
-    public NeuralNetwork(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes)
+    /**
+     * Generate a new neural network with multiple hidden layers with same amount of nodes per hidden layer
+     * @param inputNodes number of input nodes
+     * @param hiddenLayers number of hidden layers
+     * @param hiddenNodes number of hidden nodes per hidden layer
+     * @param outputNodes number of output nodes
+     * @return generated network
+     */
+    public static NeuralNetwork build(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes)
+    {
+        return new NeuralNetwork(inputNodes, hiddenLayers, hiddenNodes, outputNodes, initRandom.nextLong());
+    }
+
+    /**
+     * Constructor a new neural network with multiple hidden layers with same amount of nodes per hidden layer
+     * @param inputNodes number of input nodes
+     * @param hiddenLayers number of hidden layers
+     * @param hiddenNodes number of hidden nodes per hidden layer
+     * @param outputNodes number of output nodes
+     * @param seed seed for initial "random" values of weights and biases 
+     */
+    NeuralNetwork(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes, long seed)
     {
         this.inputNodes = inputNodes;
-        this.hiddenLayers = hiddenLayers;
+        this.hiddenLayers = hiddenNodes == 0 ? 0 : hiddenLayers;
         this.hiddenNodes = hiddenNodes;
         this.outputNodes = outputNodes;
+        this.seed = seed;
+        this.random = new Random(seed);
 
         initializeDefaultValues();
         initializeWeights();
         initializeBiases();
     }
 
-    // Copy constructor
-    public NeuralNetwork(NeuralNetwork nn)
+    /**
+     * Constructor to copy an existing network
+     * @param nn source network
+     */
+    private NeuralNetwork(NeuralNetwork nn)
     {
         this.inputNodes = nn.inputNodes;
         this.hiddenLayers = nn.hiddenLayers;
         this.hiddenNodes = nn.hiddenNodes;
         this.outputNodes = nn.outputNodes;
+        this.seed = nn.seed;
+        this.random = nn.random;
 
         this.weights = new SimpleMatrix[hiddenLayers + 1];
         this.biases = new SimpleMatrix[hiddenLayers + 1];
@@ -86,7 +124,6 @@ public class NeuralNetwork
         }
 
         this.learningRate = nn.learningRate;
-
         this.activationFunctionKey = nn.activationFunctionKey;
     }
 

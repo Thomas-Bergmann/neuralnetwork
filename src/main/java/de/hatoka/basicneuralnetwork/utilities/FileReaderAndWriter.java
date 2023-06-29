@@ -30,10 +30,9 @@ public class FileReaderAndWriter
      */
     public void write(NeuralNetwork nn, Path file) throws IOException
     {
-        String nnData = getGson().toJson(nn);
         try (FileWriter fw = new FileWriter(file.toFile()))
         {
-            fw.write(nnData);
+            fw.write(asJson(nn));
             fw.flush();
         }
     }
@@ -66,6 +65,10 @@ public class FileReaderAndWriter
         }
     }
     
+    public String asJson(NeuralNetwork nn)
+    {
+        return getGson().toJson(nn);
+    }
     /**
      * @return Gson via GsonBuilder with all the needed adapters added
      */

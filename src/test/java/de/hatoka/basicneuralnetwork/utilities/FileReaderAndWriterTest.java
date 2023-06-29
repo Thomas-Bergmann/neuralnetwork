@@ -29,7 +29,7 @@ class FileReaderAndWriterTest
     @Test
     void writeAndReadFileTest() throws IOException
     {
-        NeuralNetwork nn = new NeuralNetwork(4, 12, 3);
+        NeuralNetwork nn = NeuralNetwork.build(4, 12, 3);
         nn.train(new double[] { 0.1, 0.2, 0.3, 0.4 }, new double[] { 0.1, 0.2, 0.3 });
         Path file = Files.createTempFile("neuro1_", ".json");
         underTest.write(nn, file);
