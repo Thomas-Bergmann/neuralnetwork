@@ -14,7 +14,7 @@ public class NetworkBuilder
     public static NetworkBuilder create(int inputNodes, int outputNodes)
     {
         return new NetworkBuilder(new NetworkConfiguration(inputNodes, outputNodes, new int[] {}, 0.1,
-                        ActivationFunctions.SIGMOID, initRandom.nextLong()));
+                        ActivationFunctions.SIGMOID, 0));
     }
 
     private final NetworkConfiguration config;
@@ -24,8 +24,15 @@ public class NetworkBuilder
         this.config = config;
     }
 
+    /**
+     * @return the configured network. if the seed is not set this method will random initialize the network
+     */
     public NeuralNetwork build()
     {
+        if (config.getSeed() == 0L)
+        {
+            return setSeed(initRandom.nextLong()).build();
+        }
         return new NeuralNetwork(config);
     }
 
@@ -53,6 +60,13 @@ public class NetworkBuilder
     {
         NetworkConfiguration newConfig = new NetworkConfiguration(config.getInputNodes(), config.getOutputNodes(),
                         config.getHiddenLayers(), config.getLearningRate(), config.getActivationFunction(), seed);
+        return new NetworkBuilder(newConfig);
+    }
+
+    public NetworkBuilder setLearningRate(double learningRate)
+    {
+        NetworkConfiguration newConfig = new NetworkConfiguration(config.getInputNodes(), config.getOutputNodes(),
+                        config.getHiddenLayers(), learningRate, config.getActivationFunction(), config.getSeed());
         return new NetworkBuilder(newConfig);
     }
 }
