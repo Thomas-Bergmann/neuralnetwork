@@ -9,56 +9,73 @@ import java.util.Random;
 /**
  * Created by KimFeichtinger on 07.03.18.
  */
-public class MatrixUtilities {
+public class MatrixUtilities
+{
 
-    // Converts a 2D array into a SimpleMatrix
-    public static SimpleMatrix arrayToMatrix(double[] i) {
-        double[][] input = {i};
+    /**
+     * @param array values for matrix
+     * @return a matrix from given 2D array
+     */
+    public static SimpleMatrix arrayToMatrix(double[] array)
+    {
+        double[][] input = { array };
         return new SimpleMatrix(input).transpose();
     }
 
-    // Converts a SimpleMatrix into a 2D array
-    public static double[][] matrixTo2DArray(SimpleMatrix i) {
-        double[][] result = new double[i.numRows()][i.numCols()];
+    /**
+     * @param matrix source matrix
+     * @return an 2D array from given SimpleMatrix 
+     */
+    public static double[][] matrixTo2DArray(SimpleMatrix matrix)
+    {
+        double[][] result = new double[matrix.numRows()][matrix.numCols()];
 
-        for (int j = 0; j < result.length; j++) {
-            for (int k = 0; k < result[0].length; k++) {
-                result[j][k] = i.get(j, k);
+        for (int j = 0; j < result.length; j++)
+        {
+            for (int k = 0; k < result[0].length; k++)
+            {
+                result[j][k] = matrix.get(j, k);
             }
         }
         return result;
     }
 
-    // Returns one specific column of a matrix as a 1D array
-    public static double[] getColumnFromMatrixAsArray(SimpleMatrix data, int column) {
-        double[] result = new double[data.numRows()];
+    /**
+     * @param matrix source matrix
+     * @param column selected column
+     * @return one specific column of a matrix as an 1D array
+     */
+    public static double[] getColumnFromMatrixAsArray(SimpleMatrix matrix, int column)
+    {
+        double[] result = new double[matrix.numRows()];
 
-        for (int i = 0; i < result.length; i++) {
-            result[i] = data.get(i, column);
+        for (int i = 0; i < result.length; i++)
+        {
+            result[i] = matrix.get(i, column);
         }
-
         return result;
     }
 
-    // Merge two matrices and return a new one
-    public static SimpleMatrix mergeMatrices(SimpleMatrix matrixA, SimpleMatrix matrixB, double probability) {
-        if (matrixA.numCols() != matrixB.numCols() || matrixA.numRows() != matrixB.numRows()) {
+    /**
+     * @param matrixA matrix one
+     * @param matrixB matrix two
+     * @param probability that value from matrixB is used (executed for each element of the new matrix)
+     * @return a new matrix merged from two given ones
+     */
+    public static SimpleMatrix mergeMatrices(SimpleMatrix matrixA, SimpleMatrix matrixB, double probability)
+    {
+        if (matrixA.numCols() != matrixB.numCols() || matrixA.numRows() != matrixB.numRows())
+        {
             throw new WrongDimensionException();
-        } else {
-            Random random = new Random();
-            SimpleMatrix result = new SimpleMatrix(matrixA.numRows(), matrixA.numCols());
-
-            for (int i = 0; i < matrixA.getNumElements(); i++) {
-                // %-chance of replacing this value with the one from the input nn
-                if (random.nextDouble() > probability) {
-                    result.set(i, matrixA.get(i));
-                } else {
-                    result.set(i, matrixB.get(i));
-                }
-            }
-
-            return result;
         }
-    }
+        Random random = new Random();
+        SimpleMatrix result = new SimpleMatrix(matrixA.numRows(), matrixA.numCols());
 
+        for (int i = 0; i < matrixA.getNumElements(); i++)
+        {
+            // %-chance of replacing this value with the one from the input nn
+            result.set(i, random.nextDouble() > probability ? matrixA.get(i) : matrixB.get(i));
+        }
+        return result;
+    }
 }
