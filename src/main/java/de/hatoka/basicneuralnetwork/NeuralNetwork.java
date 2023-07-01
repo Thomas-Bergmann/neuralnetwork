@@ -33,42 +33,6 @@ public class NeuralNetwork
     private SimpleMatrix[] biases;
 
     /**
-     * Generate a new neural network without hidden layers
-     * @param inputNodes number of input nodes
-     * @param outputNodes number of output nodes
-     * @return generated network
-     */
-    public static NeuralNetwork build(int inputNodes, int outputNodes)
-    {
-        return NetworkBuilder.create(inputNodes, outputNodes).build();
-    }
-
-    /**
-     * Generate a new neural network with 1 hidden layer with the given amount of nodes
-     * @param inputNodes number of input nodes
-     * @param hiddenNodes number of hidden nodes
-     * @param outputNodes number of output nodes
-     * @return generated network
-     */
-    public static NeuralNetwork build(int inputNodes, int hiddenNodes, int outputNodes)
-    {
-        return NetworkBuilder.create(inputNodes, outputNodes).setHiddenLayers(1, hiddenNodes).build();
-    }
-
-    /**
-     * Generate a new neural network with multiple hidden layers with same amount of nodes per hidden layer
-     * @param inputNodes number of input nodes
-     * @param hiddenLayers number of hidden layers
-     * @param hiddenNodes number of hidden nodes per hidden layer
-     * @param outputNodes number of output nodes
-     * @return generated network
-     */
-    public static NeuralNetwork build(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes)
-    {
-        return NetworkBuilder.create(inputNodes, outputNodes).setHiddenLayers(hiddenLayers, hiddenNodes).build();
-    }
-
-    /**
      * Constructor a new neural network with multiple hidden layers with same amount of nodes per hidden layer
      * @param config configuration of network
      */
@@ -179,55 +143,76 @@ public class NeuralNetwork
         return MatrixUtilities.getColumnFromMatrixAsArray(output, 0);
     }
 
-    public void train(double[] inputArray, double[] targetArray)
+    /**
+     * Trains the network with given input and output
+     * @param inputArray the input data
+     * @param targetArray the expected output data
+     * @return the adaption of the network
+     */
+    public double train(double[] inputArray, double[] targetArray)
     {
         if (inputArray.length != config.getInputNodes())
         {
             throw new WrongDimensionException(inputArray.length, config.getInputNodes(), "Input");
         }
-        else if (targetArray.length != config.getOutputNodes())
+        if (targetArray.length != config.getOutputNodes())
         {
             throw new WrongDimensionException(targetArray.length, config.getOutputNodes(), "Output");
         }
-        else
+        // Transform 2D array to matrix
+        SimpleMatrix input = MatrixUtilities.arrayToMatrix(inputArray);
+        SimpleMatrix target = MatrixUtilities.arrayToMatrix(targetArray);
+
+        // Calculate the values of every single layer
+        SimpleMatrix layers[] = new SimpleMatrix[config.getHiddenLayers().length + 2];
+        layers[0] = input;
+        for (int j = 0; j < config.getHiddenLayers().length + 1; j++)
         {
-            // Transform 2D array to matrix
-            SimpleMatrix input = MatrixUtilities.arrayToMatrix(inputArray);
-            SimpleMatrix target = MatrixUtilities.arrayToMatrix(targetArray);
-
-            // Calculate the values of every single layer
-            SimpleMatrix layers[] = new SimpleMatrix[config.getHiddenLayers().length + 2];
-            layers[0] = input;
-            for (int j = 0; j < config.getHiddenLayers().length + 1; j++)
-            {
-                input = layers[j+1] = calculateLayer(weights[j], biases[j], input);
-            }
-
-            for (int n = config.getHiddenLayers().length + 1; n > 0; n--)
-            {
-                // Calculate error
-                SimpleMatrix errors = target.minus(layers[n]);
-
-                // Calculate gradient
-                SimpleMatrix gradients = calculateGradient(layers[n], errors);
-
-                // Calculate delta
-                SimpleMatrix deltas = calculateDeltas(gradients, layers[n - 1]);
-
-                // Apply gradient to bias
-                biases[n - 1] = biases[n - 1].plus(gradients);
-
-                // Apply delta to weights
-                weights[n - 1] = weights[n - 1].plus(deltas);
-
-                // Calculate and set target for previous (next) layer
-                SimpleMatrix previousError = weights[n - 1].transpose().mult(errors);
-                target = previousError.plus(layers[n - 1]);
-            }
+            input = layers[j+1] = calculateLayer(weights[j], biases[j], input);
         }
+        double sumAdaption = 0;
+        for (int n = config.getHiddenLayers().length + 1; n > 0; n--)
+        {
+            // Calculate error
+            SimpleMatrix errors = target.minus(layers[n]);
+
+            // Calculate gradient
+            SimpleMatrix gradients = calculateGradient(layers[n], errors);
+
+            // Calculate delta
+            SimpleMatrix deltas = calculateDeltas(gradients, layers[n - 1]);
+
+            // Apply gradient to bias
+            biases[n - 1] = biases[n - 1].plus(gradients);
+
+            // Apply delta to weights
+            weights[n - 1] = weights[n - 1].plus(deltas);
+            sumAdaption += getAdaption(gradients) + getAdaption(deltas);
+
+            // Calculate and set target for previous (next) layer
+            SimpleMatrix previousError = weights[n - 1].transpose().mult(errors);
+            target = previousError.plus(layers[n - 1]);
+        }
+        return sumAdaption;
     }
 
-    // Generates an exact copy of a NeuralNetwork
+    /**
+     * @param matrix matrix used for adapt the network
+     * @return sum of absolute values of elements
+     */
+    private double getAdaption(SimpleMatrix matrix)
+    {
+        double result = 0;
+        for(int i = 0; i<matrix.getNumElements(); i++)
+        {
+            result += matrix.get(i) < 0 ? -matrix.get(i) : matrix.get(i);
+        }
+        return result;
+    }
+
+    /**
+     * @return a copy of the network
+     */
     public NeuralNetwork copy()
     {
         return new NeuralNetwork(this);
