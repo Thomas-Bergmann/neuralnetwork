@@ -10,15 +10,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import de.hatoka.basicneuralnetwork.NetworkBuilder;
 import de.hatoka.basicneuralnetwork.NeuralNetwork;
 
 class FileReaderAndWriterTest
 {
     private final FileReaderAndWriter underTest = new FileReaderAndWriter();
     private final List<Path> createdFiles = new ArrayList<>();
+    private NeuralNetwork nn;
 
+    @BeforeEach
+    public void createPredefinedNetwork()
+    {
+        nn = NetworkBuilder.create(4, 3).setHiddenLayers(1, 3).setSeed(123456L).build();
+        nn.train(new double[] { 0.1, 0.2, 0.3, 0.4 }, new double[] { 0.1, 0.2, 0.3 });
+    }
     @AfterEach
     public void removeCreateFiles()
     {
@@ -29,16 +38,10 @@ class FileReaderAndWriterTest
     @Test
     void writeAndReadFileTest() throws IOException
     {
-        NeuralNetwork nn = NeuralNetwork.build(4, 12, 3);
-        nn.train(new double[] { 0.1, 0.2, 0.3, 0.4 }, new double[] { 0.1, 0.2, 0.3 });
         Path file = Files.createTempFile("neuro1_", ".json");
         underTest.write(nn, file);
         createdFiles.add(file);
-        NeuralNetwork stored = underTest.read(file);
-        Path secondFile = Files.createTempFile("neuro2_", ".json");
-        underTest.write(stored, secondFile);
-        createdFiles.add(secondFile);
-        assertEquals(nn.hashCode(), stored.hashCode());
+        assertEquals(nn, underTest.read(file));
     }
 
     @Test
@@ -46,7 +49,6 @@ class FileReaderAndWriterTest
     {
         InputStream input = FileReaderAndWriter.class.getResourceAsStream("neuro1.json");
         NeuralNetwork stored = underTest.read(input);
-        // the hashCode came from stored network, if hashCode will must be adapted, this test will fail
-        assertEquals(757017806, stored.hashCode());
+        assertEquals(nn, stored);
     }
 }

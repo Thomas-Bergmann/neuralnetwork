@@ -30,7 +30,7 @@ class NeuralNetworkTest {
     @Test
     public void initializeDefaultValuesTest() {
         assertEquals(0.1, nn.getLearningRate());
-        assertEquals(ActivationFunctions.SIGMOID.name(), nn.getActivationFunctionName());
+        assertEquals(ActivationFunctions.SIGMOID, nn.getActivationFunction());
     }
 
     @Test
@@ -112,7 +112,7 @@ class NeuralNetworkTest {
         assertEquals(nn.getHiddenLayers(), nnB.getHiddenLayers());
         assertEquals(nn.getOutputNodes(), nnB.getOutputNodes());
         assertEquals(nn.getLearningRate(), nnB.getLearningRate());
-        assertEquals(nn.getActivationFunctionName(), nnB.getActivationFunctionName());
+        assertEquals(nn.getActivationFunction(), nnB.getActivationFunction());
 
         assertEquals(nn, nnB);
     }
@@ -132,7 +132,7 @@ class NeuralNetworkTest {
         assertNotEquals(nnB, result);
 
         assertEquals(nn.getLearningRate(), result.getLearningRate());
-        assertEquals(nn.getActivationFunctionName(), result.getActivationFunctionName());
+        assertEquals(nn.getActivationFunction(), result.getActivationFunction());
 
         for (int i = 0; i < result.getWeights().length; i++) {
             SimpleMatrix resultWeights = result.getWeights()[i];
@@ -162,13 +162,13 @@ class NeuralNetworkTest {
 
     @Test
     public void testUseOtherFunction() {
-        nn.setActivationFunction(ActivationFunctions.TANH);
-        assertEquals(ActivationFunctions.TANH.name(), nn.getActivationFunctionName());
+        nn = NetworkBuilder.create(inputNodes, outputNodes).setActivationFunction(ActivationFunctions.TANH).build();
+        assertEquals(ActivationFunctions.TANH, nn.getActivationFunction());
     }
 
     @Test
     public void testNetworkWithNoHiddenNodes() {
-        NeuralNetwork noHiddenNodesNN = NeuralNetwork.build(3, 0, 2);
+        NeuralNetwork noHiddenNodesNN = NeuralNetwork.build(3, 2);
         assertEquals(0, noHiddenNodesNN.getHiddenNodes());
         assertEquals(0, noHiddenNodesNN.getHiddenLayers());
         // one matrix for layer between input and output
@@ -183,7 +183,7 @@ class NeuralNetworkTest {
 
     @Test
     public void testOr() {
-        NeuralNetwork nn = NeuralNetwork.build(2, 0, 1);
+        NeuralNetwork nn = NeuralNetwork.build(2, 1);
         for(int i=0;i<2_000;i++)
         {
             nn.train(asArray(0,0), asArray(0));
@@ -191,16 +191,16 @@ class NeuralNetworkTest {
             nn.train(asArray(1,0), asArray(1));
             nn.train(asArray(1,1), asArray(1));
         }
-        assertTrue(nn.guess(asArray(0,0))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(0,0))[0]);
-        assertTrue(nn.guess(asArray(0,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(0,1))[0]);
-        assertTrue(nn.guess(asArray(1,0))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,0))[0]);
-        assertTrue(nn.guess(asArray(1,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,1))[0]);
+        assertGuessFalse(nn.guess(asArray(0,0))[0]);
+        assertGuessTrue(nn.guess(asArray(0,1))[0]);
+        assertGuessTrue(nn.guess(asArray(1,0))[0]);
+        assertGuessTrue(nn.guess(asArray(1,1))[0]);
     }
 
     @Test
     public void testXOr() {
         NeuralNetwork nn = NeuralNetwork.build(2, 4, 1);
-        for(int i=0;i<2_000;i++)
+        for(int i=0;i<4_000;i++)
         {
             nn.train(asArray(0,0), asArray(0));
             nn.train(asArray(0,1), asArray(1));
@@ -208,10 +208,37 @@ class NeuralNetworkTest {
             nn.train(asArray(1,1), asArray(0));
         }
         System.out.println(new FileReaderAndWriter().asJson(nn));
-        assertTrue(nn.guess(asArray(0,0))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(0,0))[0]);
-        assertTrue(nn.guess(asArray(0,1))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(0,1))[0]);
-        assertTrue(nn.guess(asArray(1,0))[0] > 0.7, "value should greater than 0.7, but is " + nn.guess(asArray(1,0))[0]);
-        assertTrue(nn.guess(asArray(1,1))[0] < 0.3, "value should less than 0.3, but is " + nn.guess(asArray(1,1))[0]);
+        assertGuessFalse(nn.guess(asArray(0,0))[0]);
+        assertGuessTrue(nn.guess(asArray(0,1))[0]);
+        assertGuessTrue(nn.guess(asArray(1,0))[0]);
+        assertGuessFalse(nn.guess(asArray(1,1))[0]);
+    }
+
+    @Test
+    public void testNAndForBiasUse() {
+        NeuralNetwork nn = NeuralNetwork.build(2, 1);
+        for(int i=0;i<2_000;i++)
+        {
+            nn.train(asArray(0,0), asArray(1));
+            nn.train(asArray(0,1), asArray(0));
+            nn.train(asArray(1,0), asArray(0));
+            nn.train(asArray(1,1), asArray(0));
+        }
+        System.out.println(new FileReaderAndWriter().asJson(nn));
+        assertGuessTrue(nn.guess(asArray(0,0))[0]);
+        assertGuessFalse(nn.guess(asArray(0,1))[0]);
+        assertGuessFalse(nn.guess(asArray(1,0))[0]);
+        assertGuessFalse(nn.guess(asArray(1,1))[0]);
+    }
+    
+    private void assertGuessTrue(double value)
+    {
+        assertTrue(value > 0.7, "value should greater than 0.7, but is " + value);
+    }
+
+    private void assertGuessFalse(double value)
+    {
+        assertTrue(value < 0.3, "value should less than 0.3, but is " + value);
     }
 
     private double[] asArray(double... values)

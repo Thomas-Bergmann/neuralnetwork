@@ -8,7 +8,6 @@ import org.ejml.simple.SimpleMatrix;
 
 import com.google.gson.annotations.Expose;
 
-import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunction;
 import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunctions;
 import de.hatoka.basicneuralnetwork.utilities.MatrixUtilities;
 
@@ -18,40 +17,34 @@ import de.hatoka.basicneuralnetwork.utilities.MatrixUtilities;
 public class NeuralNetwork
 {
     /**
-     * randomizer to create a random seed for the random of the network (can be used for testing)
-     */
-    private static final Random initRandom = new Random();
-
-    /**
      * randomizer to initialize the network
      */
-    private final Random random;
-    @Expose(serialize = true, deserialize = true)
-    private final long seed;
+    private Random random;
 
-    // Dimensions of the neural network
+    /**
+     * Configuration of network
+     */
     @Expose(serialize = true, deserialize = true)
-    private int inputNodes;
-    @Expose(serialize = true, deserialize = true)
-    private int hiddenLayers;
-    @Expose(serialize = true, deserialize = true)
-    private int hiddenNodes;
-    @Expose(serialize = true, deserialize = true)
-    private int outputNodes;
+    private final NetworkConfiguration config;
 
     @Expose(serialize = true, deserialize = true)
     private SimpleMatrix[] weights;
     @Expose(serialize = true, deserialize = true)
     private SimpleMatrix[] biases;
 
-    @Expose(serialize = true, deserialize = true)
-    private double learningRate;
-
-    @Expose(serialize = true, deserialize = true)
-    private ActivationFunctions activationFunctionKey;
+    /**
+     * Generate a new neural network without hidden layers
+     * @param inputNodes number of input nodes
+     * @param outputNodes number of output nodes
+     * @return generated network
+     */
+    public static NeuralNetwork build(int inputNodes, int outputNodes)
+    {
+        return NetworkBuilder.create(inputNodes, outputNodes).build();
+    }
 
     /**
-     * Generate a new neural network with 1 hidden layer with the given amount of
+     * Generate a new neural network with 1 hidden layer with the given amount of nodes
      * @param inputNodes number of input nodes
      * @param hiddenNodes number of hidden nodes
      * @param outputNodes number of output nodes
@@ -59,7 +52,7 @@ public class NeuralNetwork
      */
     public static NeuralNetwork build(int inputNodes, int hiddenNodes, int outputNodes)
     {
-        return build(inputNodes, 1, hiddenNodes, outputNodes);
+        return NetworkBuilder.create(inputNodes, outputNodes).setHiddenLayers(1, hiddenNodes).build();
     }
 
     /**
@@ -72,67 +65,58 @@ public class NeuralNetwork
      */
     public static NeuralNetwork build(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes)
     {
-        return new NeuralNetwork(inputNodes, hiddenLayers, hiddenNodes, outputNodes, initRandom.nextLong());
+        return NetworkBuilder.create(inputNodes, outputNodes).setHiddenLayers(hiddenLayers, hiddenNodes).build();
     }
 
     /**
      * Constructor a new neural network with multiple hidden layers with same amount of nodes per hidden layer
-     * @param inputNodes number of input nodes
-     * @param hiddenLayers number of hidden layers
-     * @param hiddenNodes number of hidden nodes per hidden layer
-     * @param outputNodes number of output nodes
-     * @param seed seed for initial "random" values of weights and biases 
+     * @param config configuration of network
      */
-    NeuralNetwork(int inputNodes, int hiddenLayers, int hiddenNodes, int outputNodes, long seed)
+    NeuralNetwork(NetworkConfiguration config)
     {
-        this.inputNodes = inputNodes;
-        this.hiddenLayers = hiddenNodes == 0 ? 0 : hiddenLayers;
-        this.hiddenNodes = hiddenNodes;
-        this.outputNodes = outputNodes;
-        this.seed = seed;
-        this.random = new Random(seed);
-
-        initializeDefaultValues();
+        this.config = config;
+        this.random = new Random(config.getSeed());
         initializeWeights();
         initializeBiases();
     }
 
+    /**
+     * Initializes the network after loading
+     */
+    public void afterLoad()
+    {
+        this.random = new Random(config.getSeed());
+    }
     /**
      * Constructor to copy an existing network
      * @param nn source network
      */
     private NeuralNetwork(NeuralNetwork nn)
     {
-        this.inputNodes = nn.inputNodes;
-        this.hiddenLayers = nn.hiddenLayers;
-        this.hiddenNodes = nn.hiddenNodes;
-        this.outputNodes = nn.outputNodes;
-        this.seed = nn.seed;
+        this.config = nn.config;
         this.random = nn.random;
 
-        this.weights = new SimpleMatrix[hiddenLayers + 1];
-        this.biases = new SimpleMatrix[hiddenLayers + 1];
-
+        this.weights = new SimpleMatrix[config.getHiddenLayers().length + 1];
         for (int i = 0; i < nn.weights.length; i++)
         {
             this.weights[i] = nn.weights[i].copy();
         }
 
+        this.biases = new SimpleMatrix[config.getHiddenLayers().length + 1];
         for (int i = 0; i < nn.biases.length; i++)
         {
             this.biases[i] = nn.biases[i].copy();
         }
-
-        this.learningRate = nn.learningRate;
-        this.activationFunctionKey = nn.activationFunctionKey;
     }
 
-    private void initializeDefaultValues()
+    /**
+     * @param numRows number of rows
+     * @param numCols number of columns
+     * @return a matrix with given dimensions with random values from -1 to 1
+     */
+    private SimpleMatrix randomMatrix(int numRows, int numCols)
     {
-        this.setLearningRate(0.1);
-
-        // Sigmoid is the default ActivationFunction
-        this.setActivationFunction(ActivationFunctions.SIGMOID);
+        return SimpleMatrix.random64(numRows, numCols, -1, 1, random);
     }
 
     /**
@@ -140,25 +124,24 @@ public class NeuralNetwork
      */
     private void initializeWeights()
     {
+        int hiddenLayers = config.getHiddenLayers().length;
         weights = new SimpleMatrix[hiddenLayers + 1];
 
         // 1st weights that connects inputs to first hidden nodes or output nodes if no hidden nodes exist
-        weights[0] = SimpleMatrix.random64(hiddenNodes == 0 ? outputNodes : hiddenNodes, inputNodes, -1, 1, random);
-
-        // Initialize the weights between the layers and fill them with random values
-        for (int i = 1; i < weights.length; i++)
+        if (hiddenLayers == 0)
         {
-            if (i == weights.length - 1)
-            {
-                // last weights that connect last hidden layer to output
-                weights[i] = SimpleMatrix.random64(outputNodes, hiddenNodes, -1, 1, random);
-            }
-            else
-            {
-                // everything else
-                weights[i] = SimpleMatrix.random64(hiddenNodes, hiddenNodes, -1, 1, random);
-            }
+            weights[0] = randomMatrix(config.getOutputNodes(), config.getInputNodes());
+            return;
         }
+
+        weights[0] = randomMatrix(config.getHiddenLayers()[0], config.getInputNodes());
+        // Initialize the weights between the layers and fill them with random values
+        for (int i = 1; i < hiddenLayers; i++)
+        {
+            weights[i] = randomMatrix(config.getHiddenLayers()[i], config.getHiddenLayers()[i-1]);
+        }
+        // last weights that connect last hidden layer to output
+        weights[hiddenLayers] = randomMatrix(config.getOutputNodes(), config.getHiddenLayers()[hiddenLayers - 1]);
     }
 
     /**
@@ -166,20 +149,15 @@ public class NeuralNetwork
      */
     private void initializeBiases()
     {
+        int hiddenLayers = config.getHiddenLayers().length;
         biases = new SimpleMatrix[hiddenLayers + 1];
 
         // Initialize the biases and fill them with random values
-        for (int i = 0; i < biases.length; i++)
+        for (int i = 0; i < hiddenLayers; i++)
         {
-            if (i == biases.length - 1)
-            { // bias for last layer (output layer)
-                biases[i] = SimpleMatrix.random64(outputNodes, 1, -1, 1, random);
-            }
-            else
-            {
-                biases[i] = SimpleMatrix.random64(hiddenNodes, 1, -1, 1, random);
-            }
+            biases[i] = randomMatrix(config.getHiddenLayers()[i], 1);
         }
+        biases[hiddenLayers] = randomMatrix(config.getOutputNodes(), 1);
     }
 
     /**
@@ -188,56 +166,50 @@ public class NeuralNetwork
      */
     public double[] guess(double[] input)
     {
-        if (input.length != inputNodes)
+        if (input.length != config.getInputNodes())
         {
-            throw new WrongDimensionException(input.length, inputNodes, "Input");
+            throw new WrongDimensionException(input.length, config.getInputNodes(), "Input");
         }
-        ActivationFunction activationFunction = activationFunctionKey.getFunction();
-
         // Transform array to matrix
         SimpleMatrix output = MatrixUtilities.arrayToMatrix(input);
-        for (int i = 0; i < hiddenLayers + 1; i++)
+        for (int i = 0; i < config.getHiddenLayers().length + 1; i++)
         {
-            output = calculateLayer(weights[i], biases[i], output, activationFunction);
+            output = calculateLayer(weights[i], biases[i], output);
         }
         return MatrixUtilities.getColumnFromMatrixAsArray(output, 0);
     }
 
     public void train(double[] inputArray, double[] targetArray)
     {
-        if (inputArray.length != inputNodes)
+        if (inputArray.length != config.getInputNodes())
         {
-            throw new WrongDimensionException(inputArray.length, inputNodes, "Input");
+            throw new WrongDimensionException(inputArray.length, config.getInputNodes(), "Input");
         }
-        else if (targetArray.length != outputNodes)
+        else if (targetArray.length != config.getOutputNodes())
         {
-            throw new WrongDimensionException(targetArray.length, outputNodes, "Output");
+            throw new WrongDimensionException(targetArray.length, config.getOutputNodes(), "Output");
         }
         else
         {
-            // Get ActivationFunction-object from the map by key
-            ActivationFunction activationFunction = activationFunctionKey.getFunction();
-
             // Transform 2D array to matrix
             SimpleMatrix input = MatrixUtilities.arrayToMatrix(inputArray);
             SimpleMatrix target = MatrixUtilities.arrayToMatrix(targetArray);
 
             // Calculate the values of every single layer
-            SimpleMatrix layers[] = new SimpleMatrix[hiddenLayers + 2];
+            SimpleMatrix layers[] = new SimpleMatrix[config.getHiddenLayers().length + 2];
             layers[0] = input;
-            for (int j = 1; j < hiddenLayers + 2; j++)
+            for (int j = 0; j < config.getHiddenLayers().length + 1; j++)
             {
-                layers[j] = calculateLayer(weights[j - 1], biases[j - 1], input, activationFunction);
-                input = layers[j];
+                input = layers[j+1] = calculateLayer(weights[j], biases[j], input);
             }
 
-            for (int n = hiddenLayers + 1; n > 0; n--)
+            for (int n = config.getHiddenLayers().length + 1; n > 0; n--)
             {
                 // Calculate error
                 SimpleMatrix errors = target.minus(layers[n]);
 
                 // Calculate gradient
-                SimpleMatrix gradients = calculateGradient(layers[n], errors, activationFunction);
+                SimpleMatrix gradients = calculateGradient(layers[n], errors);
 
                 // Calculate delta
                 SimpleMatrix deltas = calculateDeltas(gradients, layers[n - 1]);
@@ -261,19 +233,24 @@ public class NeuralNetwork
         return new NeuralNetwork(this);
     }
 
-    // Merges the weights and biases of two NeuralNetworks and returns a new object
-    // Merge-ratio: 50:50 (half of the values will be from nn1 and other half from
-    // nn2)
+    /**
+     * Merges the weights and biases of two NeuralNetworks and returns a new object
+     * Merge-ratio: 50:50 (half of the values will be from nn1 and other half from nn2)
+     * @param nn network to merge with current
+     * @return merged network
+     */
     public NeuralNetwork merge(NeuralNetwork nn)
     {
         return this.merge(nn, 0.5);
     }
 
-    // Merges the weights and biases of two NeuralNetworks and returns a new object
-    // Everything besides the weights and biases will be the same
-    // of the object on which this method is called (Learning Rate, activation
-    // function, etc.)
-    // Merge-ratio: defined by probability
+    /**
+     * Merges the weights and biases of two NeuralNetworks and returns a new object
+     * Merge-ratio: 50:50 (half of the values will be from nn1 and other half from nn2)
+     * @param nn network to merge with current
+     * @param probability ratio between current and other network
+     * @return merged network
+     */
     public NeuralNetwork merge(NeuralNetwork nn, double probability)
     {
         // Check whether the nns have the same dimensions
@@ -328,23 +305,21 @@ public class NeuralNetwork
     }
 
     // Generic function to calculate one layer
-    private SimpleMatrix calculateLayer(SimpleMatrix weights, SimpleMatrix bias, SimpleMatrix input,
-                    ActivationFunction activationFunction)
+    private SimpleMatrix calculateLayer(SimpleMatrix weights, SimpleMatrix bias, SimpleMatrix input)
     {
         // Calculate outputs of layer
         SimpleMatrix result = weights.mult(input);
         // Add bias to outputs
         result = result.plus(bias);
         // Apply activation function and return result
-        return applyActivationFunction(result, false, activationFunction);
+        return applyActivationFunction(result, false);
     }
 
-    private SimpleMatrix calculateGradient(SimpleMatrix layer, SimpleMatrix error,
-                    ActivationFunction activationFunction)
+    private SimpleMatrix calculateGradient(SimpleMatrix layer, SimpleMatrix error)
     {
-        SimpleMatrix gradient = applyActivationFunction(layer, true, activationFunction);
+        SimpleMatrix gradient = applyActivationFunction(layer, true);
         gradient = gradient.elementMult(error);
-        return gradient.scale(learningRate);
+        return gradient.scale(config.getLearningRate());
     }
 
     private SimpleMatrix calculateDeltas(SimpleMatrix gradient, SimpleMatrix layer)
@@ -356,53 +331,42 @@ public class NeuralNetwork
     // An object of an implementation of the ActivationFunction-interface has to be
     // passed
     // The function in this class will be to the matrix
-    private SimpleMatrix applyActivationFunction(SimpleMatrix input, boolean derivative,
-                    ActivationFunction activationFunction)
+    private SimpleMatrix applyActivationFunction(SimpleMatrix input, boolean derivative)
     {
         // Applies either derivative of activation function or regular activation
         // function to a matrix and returns the result
-        return derivative ? activationFunction.invert(input)
-                        : activationFunction.activate(input);
+        return derivative ? config.getActivationFunction().getFunction().invert(input)
+                        : config.getActivationFunction().getFunction().activate(input);
     }
 
-    public void setActivationFunction(ActivationFunctions activationFunction)
+    public ActivationFunctions getActivationFunction()
     {
-        this.activationFunctionKey = activationFunction;
-    }
-
-    public String getActivationFunctionName()
-    {
-        return this.activationFunctionKey.name();
+        return config.getActivationFunction();
     }
 
     public double getLearningRate()
     {
-        return learningRate;
-    }
-
-    public void setLearningRate(double learningRate)
-    {
-        this.learningRate = learningRate;
+        return config.getLearningRate();
     }
 
     public int getInputNodes()
     {
-        return inputNodes;
+        return config.getInputNodes();
     }
 
     public int getHiddenLayers()
     {
-        return hiddenLayers;
+        return config.getHiddenLayers().length;
     }
 
     public int getHiddenNodes()
     {
-        return hiddenNodes;
+        return config.getHiddenLayers().length == 0 ? 0 : config.getHiddenLayers()[0];
     }
 
     public int getOutputNodes()
     {
-        return outputNodes;
+        return config.getOutputNodes();
     }
 
     public SimpleMatrix[] getWeights()
@@ -427,7 +391,8 @@ public class NeuralNetwork
 
     public int[] getDimensions()
     {
-        return new int[] { inputNodes, hiddenLayers, hiddenNodes, outputNodes };
+        // TODO doesn't fit to networks with different hidden layers
+        return new int[] { config.getInputNodes(), config.getHiddenLayers().length, config.getHiddenLayers()[0], config.getOutputNodes() };
     }
 
     private int hashCode(SimpleMatrix[] matrices)
@@ -478,8 +443,7 @@ public class NeuralNetwork
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + Objects.hash(activationFunctionKey.name(), hiddenLayers, hiddenNodes, inputNodes,
-                        learningRate, outputNodes);
+        result = prime * result + Objects.hash(config);
         result = prime * result + hashCode(biases);
         result = prime * result + hashCode(weights);
         return result;
@@ -492,10 +456,6 @@ public class NeuralNetwork
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         NeuralNetwork other = (NeuralNetwork)obj;
-        return Objects.equals(activationFunctionKey, other.activationFunctionKey) && equalsMatrix(biases, other.biases)
-                        && hiddenLayers == other.hiddenLayers && hiddenNodes == other.hiddenNodes
-                        && inputNodes == other.inputNodes
-                        && Double.doubleToLongBits(learningRate) == Double.doubleToLongBits(other.learningRate)
-                        && outputNodes == other.outputNodes && equalsMatrix(weights, other.weights);
+        return Objects.equals(config, other.config) && equalsMatrix(biases, other.biases) && equalsMatrix(weights, other.weights);
     }
 }

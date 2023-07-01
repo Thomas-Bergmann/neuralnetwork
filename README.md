@@ -43,17 +43,18 @@ Runs all JUnit-Tests specified in this project.
 ## Use the library
 Dependencies
 ```gradle
-implementation 'de.hatoka.neuralnetwork:neuralnetwork:1.0.0'
+implementation 'de.hatoka.neuralnetwork:neuralnetwork:2.0.0'
 ```
 
 Constructors:
 ```java
 import de.hatoka.basicneuralnetwork.NeuralNetwork;
-// Neural network with 2 inputs, 1 hidden layer, 4 hidden nodes and 1 output
-NeuralNetwork nn0 = new NeuralNetwork(2, 4, 1);
+import de.hatoka.basicneuralnetwork.NetworkBuilder;
 
-// Neural network with 2 inputs, 2 hidden layers, 4 hidden nodes and 1 output
-NeuralNetwork nn1 = new NeuralNetwork(2, 2, 4, 1);
+// create simplest network with 2 inputs and 1 output
+NeuralNetwork nn1 = NetworkBuilder.create(2,1).build();
+// create network with 2 inputs, 2 hidden layer with 4 nodes and 1 output
+NeuralNetwork nn0 = NetworkBuilder.create(2,1).setHiddenLayers(2, 4).build();
 ```
 
 Train and guess:
@@ -80,20 +81,13 @@ NeuralNetwork networkViaFile = networkReaderWriter.read(file);
 
 Adjust the learning rate:
 ```java
-// Set the learning rate (Initially the learning rate is 0.1)
-nn.setLearningRate(0.01);
-
-// Get current learning rate
-nn.getLearningRate();
+NeuralNetwork nn = NetworkBuilder.create(2,1).setLearningRate(0.2).build();
 ```
 
 Use different activation functions:
 ```java
 // Set the activation function (By default Sigmoid will be used)
-nn.setActivationFunction(ActivationFunctions.TANH);
-
-// Get name of currently used activation function
-nn.getActivationFunctionName();
+NeuralNetwork nn = NetworkBuilder.create(2,1).setActivationFunction(ActivationFunctions.TANH).build();
 ```
 
 Use this library with genetic algorithms:
