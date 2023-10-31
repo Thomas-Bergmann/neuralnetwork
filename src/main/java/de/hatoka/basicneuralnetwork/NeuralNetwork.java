@@ -80,7 +80,7 @@ public class NeuralNetwork
      */
     private SimpleMatrix randomMatrix(int numRows, int numCols)
     {
-        return SimpleMatrix.random64(numRows, numCols, -1, 1, random);
+        return MatrixUtilities.createRandomMatrix(numRows, numCols, random);
     }
 
     /**

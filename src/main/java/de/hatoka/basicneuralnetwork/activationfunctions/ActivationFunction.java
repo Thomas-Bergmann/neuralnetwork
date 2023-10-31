@@ -62,8 +62,8 @@ public interface ActivationFunction
      */
     private static SimpleMatrix apply(SimpleMatrix input, Function<Double, Double> f)
     {
-        SimpleMatrix output = new SimpleMatrix(input.numRows(), input.numCols());
-        for (int i = 0; i < input.numRows(); i++)
+        SimpleMatrix output = new SimpleMatrix(input.getNumRows(), input.getNumCols());
+        for (int i = 0; i < input.getNumRows(); i++)
         {
             output.set(i, COLUMN_NULL, f.apply(input.get(i, COLUMN_NULL)));
         }

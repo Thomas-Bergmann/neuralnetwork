@@ -25,8 +25,8 @@ public class SimpleMatrixAdapter implements JsonSerializer<SimpleMatrix>, JsonDe
 		final JsonObject member = new JsonObject();
 		JsonArray elements = new JsonArray();
 		member.addProperty("type", SimpleMatrix.class.getSimpleName());
-		member.addProperty("cols", object.numCols());
-		member.addProperty("rows", object.numRows());
+		member.addProperty("cols", object.getNumCols());
+		member.addProperty("rows", object.getNumRows());
 
 		for (int i = 0; i < object.getNumElements(); i++) {
 			elements.add(object.get(i));

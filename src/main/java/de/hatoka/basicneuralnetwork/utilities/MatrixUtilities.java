@@ -11,6 +11,16 @@ import java.util.Random;
  */
 public class MatrixUtilities
 {
+    /**
+     * @param getNumRows number of rows
+     * @param getNumCols number of columns
+     * @param random provides random numbers
+     * @return a matrix with given dimensions with random values from -1 to 1
+     */
+    public static SimpleMatrix createRandomMatrix(int getNumRows, int getNumCols, Random random)
+    {
+        return SimpleMatrix.random_DDRM(getNumRows, getNumCols, -1, 1, random);
+    }
 
     /**
      * @param array values for matrix
@@ -28,7 +38,7 @@ public class MatrixUtilities
      */
     public static double[][] matrixTo2DArray(SimpleMatrix matrix)
     {
-        double[][] result = new double[matrix.numRows()][matrix.numCols()];
+        double[][] result = new double[matrix.getNumRows()][matrix.getNumCols()];
 
         for (int j = 0; j < result.length; j++)
         {
@@ -47,7 +57,7 @@ public class MatrixUtilities
      */
     public static double[] getColumnFromMatrixAsArray(SimpleMatrix matrix, int column)
     {
-        double[] result = new double[matrix.numRows()];
+        double[] result = new double[matrix.getNumRows()];
 
         for (int i = 0; i < result.length; i++)
         {
@@ -64,12 +74,12 @@ public class MatrixUtilities
      */
     public static SimpleMatrix mergeMatrices(SimpleMatrix matrixA, SimpleMatrix matrixB, double probability)
     {
-        if (matrixA.numCols() != matrixB.numCols() || matrixA.numRows() != matrixB.numRows())
+        if (matrixA.getNumCols() != matrixB.getNumCols() || matrixA.getNumRows() != matrixB.getNumRows())
         {
             throw new WrongDimensionException();
         }
         Random random = new Random();
-        SimpleMatrix result = new SimpleMatrix(matrixA.numRows(), matrixA.numCols());
+        SimpleMatrix result = new SimpleMatrix(matrixA.getNumRows(), matrixA.getNumCols());
 
         for (int i = 0; i < matrixA.getNumElements(); i++)
         {
