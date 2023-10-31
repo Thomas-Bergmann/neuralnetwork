@@ -46,10 +46,10 @@ class NeuralNetworkTest
     {
         SimpleMatrix[] weights = nn.getWeights();
         assertEquals(hiddenLayers + 1, weights.length);
-        assertEquals(inputNodes, weights[0].numCols());
-        assertEquals(hiddenNodes, weights[0].numRows());
-        assertEquals(hiddenNodes, weights[weights.length - 1].numCols());
-        assertEquals(outputNodes, weights[weights.length - 1].numRows());
+        assertEquals(inputNodes, weights[0].getNumCols());
+        assertEquals(hiddenNodes, weights[0].getNumRows());
+        assertEquals(hiddenNodes, weights[weights.length - 1].getNumCols());
+        assertEquals(outputNodes, weights[weights.length - 1].getNumRows());
 
         for (SimpleMatrix weight : weights)
         {
@@ -66,10 +66,10 @@ class NeuralNetworkTest
     {
         SimpleMatrix[] biases = nn.getBiases();
         assertEquals(hiddenLayers + 1, biases.length);
-        assertEquals(1, biases[0].numCols());
-        assertEquals(hiddenNodes, biases[0].numRows());
-        assertEquals(1, biases[biases.length - 1].numCols());
-        assertEquals(outputNodes, biases[biases.length - 1].numRows());
+        assertEquals(1, biases[0].getNumCols());
+        assertEquals(hiddenNodes, biases[0].getNumRows());
+        assertEquals(1, biases[biases.length - 1].getNumCols());
+        assertEquals(outputNodes, biases[biases.length - 1].getNumRows());
 
         for (SimpleMatrix bias : biases)
         {

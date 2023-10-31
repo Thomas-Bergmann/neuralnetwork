@@ -20,8 +20,8 @@ class MatrixUtilitiesTest {
         double[] input = {3, 5};
         SimpleMatrix result = MatrixUtilities.arrayToMatrix(input);
 
-        assertEquals(2, result.numRows());
-        assertEquals(1, result.numCols());
+        assertEquals(2, result.getNumRows());
+        assertEquals(1, result.getNumCols());
         assertEquals(3, result.get(0, 0));
         assertEquals(5, result.get(1, 0));
         assertEquals(2, result.getNumElements());
@@ -29,19 +29,19 @@ class MatrixUtilitiesTest {
 
     @Test
     public void matrixTo2DArrayTest() {
-        SimpleMatrix input = SimpleMatrix.random64(2,3, 0, 1, random);
+        SimpleMatrix input = MatrixUtilities.createRandomMatrix(2,3, random);
         input.set(0, 0, 5);
         double[][] result = MatrixUtilities.matrixTo2DArray(input);
 
         assertEquals(5, result[0][0]);
-        assertEquals(input.numRows(), result.length);
-        assertEquals(input.numCols(), result[0].length);
+        assertEquals(input.getNumRows(), result.length);
+        assertEquals(input.getNumCols(), result[0].length);
         assertEquals(input.getNumElements(), result[0].length * result.length);
     }
 
     @Test
     public void getColumnFromMatrixAsArrayTest() {
-        SimpleMatrix input = SimpleMatrix.random64(2, 2, 0, 1, random);
+        SimpleMatrix input = MatrixUtilities.createRandomMatrix(2, 2, random);
         input.set(0, 0, 5);
         double[] result = MatrixUtilities.getColumnFromMatrixAsArray(input, 0);
 
@@ -51,17 +51,17 @@ class MatrixUtilitiesTest {
 
     @Test
     public void mergeMatricesTestWrongDimensions() {
-        SimpleMatrix matrixA = SimpleMatrix.random64(2,3,0,1, random);
-        SimpleMatrix matrixB = SimpleMatrix.random64(1,2,0,1, random);
+        SimpleMatrix matrixA = MatrixUtilities.createRandomMatrix(2,3, random);
+        SimpleMatrix matrixB = MatrixUtilities.createRandomMatrix(1,2, random);
         Throwable exception = assertThrows(WrongDimensionException.class, () -> MatrixUtilities.mergeMatrices(matrixA, matrixB, 0.5));
         assertEquals("Dimensions don't match.", exception.getMessage());
     }
 
     @Test
     public void mergeMatricesTest() {
-        SimpleMatrix matrixA = SimpleMatrix.random64(2,2,0,1, random);
+        SimpleMatrix matrixA = MatrixUtilities.createRandomMatrix(2,2, random);
         matrixA.set(0, 0, 5);
-        SimpleMatrix matrixB = SimpleMatrix.random64(2,2,0,1, random);
+        SimpleMatrix matrixB = MatrixUtilities.createRandomMatrix(2,2, random);
         matrixB.set(0, 0, 3);
 
         SimpleMatrix result = MatrixUtilities.mergeMatrices(matrixA, matrixB, 0.5);
