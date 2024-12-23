@@ -106,5 +106,5 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter:5.10.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter:5.11.4")
 }
