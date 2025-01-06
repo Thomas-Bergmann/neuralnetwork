@@ -103,7 +103,7 @@ dependencies {
     implementation("org.ejml:ejml-all:0.43.1")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.slf4j:slf4j-api:2.0.16")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.16")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter:5.10.3")
