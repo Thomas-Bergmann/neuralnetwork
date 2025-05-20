@@ -125,8 +125,8 @@ public class NeuralNetwork
     }
 
     /**
-     * @param input list of input values for the network
-     * @return list of output values calculated (guess) by the network via forward propagation
+     * @param input array of input values for the network
+     * @return array of output values calculated (guess) by the network via forward propagation
      */
     public double[] guess(double[] input)
     {
@@ -164,7 +164,7 @@ public class NeuralNetwork
         SimpleMatrix target = MatrixUtilities.arrayToMatrix(targetArray);
 
         // Calculate the values of every single layer
-        SimpleMatrix layers[] = new SimpleMatrix[config.getHiddenLayers().length + 2];
+        SimpleMatrix[] layers = new SimpleMatrix[config.getHiddenLayers().length + 2];
         layers[0] = input;
         for (int j = 0; j < config.getHiddenLayers().length + 1; j++)
         {
@@ -384,9 +384,9 @@ public class NeuralNetwork
     {
         final int prime = 31;
         int result = 1;
-        for (int i = 0; i < matrices.length; i++)
+        for (SimpleMatrix matrix : matrices)
         {
-            result = prime * result + hashCode(matrices[i]);
+            result = prime * result + hashCode(matrix);
         }
         return result;
     }
@@ -426,12 +426,7 @@ public class NeuralNetwork
     @Override
     public int hashCode()
     {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Objects.hash(config);
-        result = prime * result + hashCode(biases);
-        result = prime * result + hashCode(weights);
-        return result;
+        return Objects.hash(config, hashCode(biases), hashCode(weights));
     }
 
     @Override

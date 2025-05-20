@@ -1,5 +1,6 @@
 package de.hatoka.basicneuralnetwork;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunctions;
@@ -39,10 +40,7 @@ public class NetworkBuilder
     public NetworkBuilder setHiddenLayers(int hiddenLayers, int hiddenNodes)
     {
         int[] hiddenLayerDefinition = new int[hiddenLayers];
-        for (int i = 0; i < hiddenLayers; i++)
-        {
-            hiddenLayerDefinition[i] = hiddenNodes;
-        }
+        Arrays.fill(hiddenLayerDefinition, hiddenNodes);
         NetworkConfiguration newConfig = new NetworkConfiguration(config.getInputNodes(), config.getOutputNodes(),
                         hiddenLayerDefinition, config.getLearningRate(), config.getActivationFunction(),
                         config.getSeed());
