@@ -45,7 +45,7 @@ class MatrixUtilitiesTest {
         input.set(0, 0, 5);
         double[] result = MatrixUtilities.getColumnFromMatrixAsArray(input, 0);
 
-        assertEquals(result[0], 5);
+        assertEquals(5, result[0]);
         assertEquals(2, result.length);
     }
 

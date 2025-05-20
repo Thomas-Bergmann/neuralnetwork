@@ -26,7 +26,7 @@ public class FileReaderAndWriter
      * Writes a neural network to file
      * @param nn network
      * @param file file location
-     * @throws IOException
+     * @throws IOException in case writing network to file fails
      */
     public void write(NeuralNetwork nn, Path file) throws IOException
     {
@@ -41,7 +41,7 @@ public class FileReaderAndWriter
      * Read neural network from file
      * @param file file location
      * @return neural network
-     * @throws IOException
+     * @throws IOException in case reading from file fails
      */
     public NeuralNetwork read(Path file) throws IOException
     {
@@ -57,7 +57,7 @@ public class FileReaderAndWriter
      * Read neural network from resource (application can provide trained networks
      * @param input input stream from resource
      * @return neural network
-     * @throws IOException
+     * @throws IOException in case reading from input stream fails
      */
     public NeuralNetwork read(InputStream input) throws IOException
     {
