@@ -1,8 +1,8 @@
 plugins {
     `java-library`
-    `jacoco`
+    jacoco
     `maven-publish`
-    `signing`
+    signing
 }
 
 group="de.hatoka.neuralnetwork"
@@ -21,7 +21,7 @@ repositories {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
         vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 
@@ -30,7 +30,7 @@ java {
 }
 
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.13"
 }
 
 tasks {
@@ -42,7 +42,7 @@ tasks {
         reports {
             xml.required.set(true)
             html.required.set(true)
-            html.outputLocation.set( File(project.buildDir, "jacocoHtml") )
+            html.outputLocation.set( File(project.layout.buildDirectory.asFile.get(), "jacocoHtml") )
         }
 
         val jacocoTestReport by tasks
@@ -98,13 +98,13 @@ signing {
     sign(publishing.publications["hatokaMvn"])
 }
 
+val junitVersion = "5.11.3"
 dependencies {
-    // implementation(gradleApi())
     implementation("org.ejml:ejml-all:0.43.1")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.slf4j:slf4j-api:2.0.16")
     runtimeOnly("ch.qos.logback:logback-classic:1.5.16")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter:${junitVersion}")
 }

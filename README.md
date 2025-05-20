@@ -32,7 +32,7 @@ The source is a fork from [Kim Marcel / Basic Neural Network](https://github.com
 This section describes how a working copy of this project can be set up on your local machine for testing and development purposes. If you just want to use the library you can skip this part.
 
 ### Prerequisites
-- [Java JDK 17](https://adoptium.net/temurin/releases/) needs to be installed and JAVA_HOME must be set
+- [Java JDK 21](https://adoptium.net/temurin/releases/) needs to be installed and JAVA_HOME must be set
 
 ### Build and Testing
 ```
