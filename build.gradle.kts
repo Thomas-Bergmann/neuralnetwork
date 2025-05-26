@@ -98,7 +98,7 @@ signing {
     sign(publishing.publications["hatokaMvn"])
 }
 
-val junitVersion = "5.11.3"
+val junitVersion = "5.12.2"
 dependencies {
     implementation("org.ejml:ejml-all:0.43.1")
     implementation("com.google.code.gson:gson:2.11.0")
