@@ -36,6 +36,9 @@ jacoco {
 tasks {
     withType<Test> {
         useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
     }
 
     withType<JacocoReport> {
@@ -98,7 +101,7 @@ signing {
     sign(publishing.publications["hatokaMvn"])
 }
 
-val junitVersion = "5.11.3"
+val junitVersion = "5.13.2"
 dependencies {
     implementation("org.ejml:ejml-all:0.44.0")
     implementation("com.google.code.gson:gson:2.13.1")
@@ -106,5 +109,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic:1.5.16")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter:${junitVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${junitVersion}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }

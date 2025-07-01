@@ -10,3 +10,7 @@ build/**
 bin/**
 /.gradle/
 /build/
+
+# Aider files
+.aider*
+aider
