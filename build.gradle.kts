@@ -101,7 +101,7 @@ signing {
 val junitVersion = "5.11.3"
 dependencies {
     implementation("org.ejml:ejml-all:0.44.0")
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.slf4j:slf4j-api:2.0.16")
     runtimeOnly("ch.qos.logback:logback-classic:1.5.16")
 
