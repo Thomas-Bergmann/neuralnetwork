@@ -8,8 +8,8 @@ import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunctions;
 
 class NetworkConfigurationTest
 {
-    NetworkConfiguration config1 = new NetworkConfiguration(2, 3, new int[] {1,3,4}, 0.1, ActivationFunctions.SIGMOID, 123456L);
-    NetworkConfiguration config2 = new NetworkConfiguration(2, 3, new int[] {1,3,4}, 0.1, ActivationFunctions.SIGMOID, 123456L);
+    NetworkConfiguration config1 = new NetworkConfiguration(2, 3, new int[] {1,3,4}, 0.1, ActivationFunctions.SIGMOID, 123456L, false, 4);
+    NetworkConfiguration config2 = new NetworkConfiguration(2, 3, new int[] {1,3,4}, 0.1, ActivationFunctions.SIGMOID, 123456L, false, 4);
 
     @Test
     void testHashCode()
