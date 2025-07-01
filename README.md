@@ -126,4 +126,8 @@ If you want to contribute by implementing any of these features or your own idea
 
 - [EJML](https://www.ejml.org) used for Matrix math
 - [Google Gson](https://github.com/google/gson) library
-- [Gradle 8.1.1](https://docs.gradle.org/8.1.1/release-notes.html) build tooling
+- [Gradle](https://docs.gradle.org/) build tooling
+
+## AI Support
+- [AI Instructions](.claude/ai-intructions.md) for project context and guidelines
+- [AI Project Summary](.claude/project-summary.md) for high-level overview
