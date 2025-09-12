@@ -63,7 +63,9 @@ public class FileReaderAndWriter
     {
         try (JsonReader jsonReader = new JsonReader(new InputStreamReader(input)))
         {
-            return getGson().fromJson(jsonReader, NeuralNetwork.class);
+            NeuralNetwork nn = getGson().fromJson(jsonReader, NeuralNetwork.class);
+            nn.afterLoad();
+            return nn;
         }
     }
     
