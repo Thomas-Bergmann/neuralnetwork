@@ -106,7 +106,7 @@ dependencies {
     implementation("org.ejml:ejml-all:0.44.0")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.16")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.19")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${junitVersion}")
