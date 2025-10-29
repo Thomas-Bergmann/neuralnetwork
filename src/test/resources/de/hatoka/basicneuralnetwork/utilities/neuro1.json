@@ -7,7 +7,9 @@
     ],
     "learningRate": 0.1,
     "activationFunction": "SIGMOID",
-    "seed": 123456
+    "seed": 123456,
+    "parallelTraining": false,
+    "parallelThreads": 20
   },
   "weights": [
     {

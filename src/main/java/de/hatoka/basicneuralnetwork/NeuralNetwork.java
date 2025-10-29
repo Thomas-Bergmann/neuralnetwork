@@ -10,6 +10,7 @@ import com.google.gson.annotations.Expose;
 
 import de.hatoka.basicneuralnetwork.activationfunctions.ActivationFunctions;
 import de.hatoka.basicneuralnetwork.utilities.MatrixUtilities;
+import de.hatoka.basicneuralnetwork.utilities.MatrixOps;
 
 /**
  * Created by KimFeichtinger on 04.03.18.
@@ -31,6 +32,11 @@ public class NeuralNetwork
     private SimpleMatrix[] weights;
     @Expose(serialize = true, deserialize = true)
     private SimpleMatrix[] biases;
+    
+    /**
+     * Matrix operations strategy (not serialized)
+     */
+    private transient MatrixOps matrixOps;
 
     /**
      * Constructor a new neural network with multiple hidden layers with same amount of nodes per hidden layer
@@ -40,6 +46,7 @@ public class NeuralNetwork
     {
         this.config = config;
         this.random = new Random(config.getSeed());
+        this.matrixOps = config.createMatrixOps();
         initializeWeights();
         initializeBiases();
     }
@@ -50,6 +57,7 @@ public class NeuralNetwork
     public void afterLoad()
     {
         this.random = new Random(config.getSeed());
+        this.matrixOps = config.createMatrixOps();
     }
     /**
      * Constructor to copy an existing network
@@ -59,6 +67,7 @@ public class NeuralNetwork
     {
         this.config = nn.config;
         this.random = nn.random;
+        this.matrixOps = config.createMatrixOps();
 
         this.weights = new SimpleMatrix[config.getHiddenLayers().length + 1];
         for (int i = 0; i < nn.weights.length; i++)
@@ -174,7 +183,7 @@ public class NeuralNetwork
         for (int n = config.getHiddenLayers().length + 1; n > 0; n--)
         {
             // Calculate error
-            SimpleMatrix errors = target.minus(layers[n]);
+            SimpleMatrix errors = matrixOps.minus(target, layers[n]);
 
             // Calculate gradient
             SimpleMatrix gradients = calculateGradient(layers[n], errors);
@@ -183,15 +192,15 @@ public class NeuralNetwork
             SimpleMatrix deltas = calculateDeltas(gradients, layers[n - 1]);
 
             // Apply gradient to bias
-            biases[n - 1] = biases[n - 1].plus(gradients);
+            biases[n - 1] = matrixOps.plus(biases[n - 1], gradients);
 
             // Apply delta to weights
-            weights[n - 1] = weights[n - 1].plus(deltas);
+            weights[n - 1] = matrixOps.plus(weights[n - 1], deltas);
             sumAdaption += getAdaption(gradients) + getAdaption(deltas);
 
             // Calculate and set target for previous (next) layer
-            SimpleMatrix previousError = weights[n - 1].transpose().mult(errors);
-            target = previousError.plus(layers[n - 1]);
+            SimpleMatrix previousError = matrixOps.mult(weights[n - 1].transpose(), errors);
+            target = matrixOps.plus(previousError, layers[n - 1]);
         }
         return sumAdaption;
     }
@@ -293,9 +302,9 @@ public class NeuralNetwork
     private SimpleMatrix calculateLayer(SimpleMatrix weights, SimpleMatrix bias, SimpleMatrix input)
     {
         // Calculate outputs of layer
-        SimpleMatrix result = weights.mult(input);
+        SimpleMatrix result = matrixOps.mult(weights, input);
         // Add bias to outputs
-        result = result.plus(bias);
+        result = matrixOps.plus(result, bias);
         // Apply activation function and return result
         return applyActivationFunction(result, false);
     }
@@ -303,13 +312,13 @@ public class NeuralNetwork
     private SimpleMatrix calculateGradient(SimpleMatrix layer, SimpleMatrix error)
     {
         SimpleMatrix gradient = applyActivationFunction(layer, true);
-        gradient = gradient.elementMult(error);
+        gradient = matrixOps.elementMult(gradient, error);
         return gradient.scale(config.getLearningRate());
     }
 
     private SimpleMatrix calculateDeltas(SimpleMatrix gradient, SimpleMatrix layer)
     {
-        return gradient.mult(layer.transpose());
+        return matrixOps.mult(gradient, layer.transpose());
     }
 
     // Applies an activation function to a matrix
@@ -372,6 +381,16 @@ public class NeuralNetwork
     public void setBiases(SimpleMatrix[] biases)
     {
         this.biases = biases;
+    }
+
+    public boolean isParallelTraining()
+    {
+        return config.isParallelTraining();
+    }
+
+    public int getParallelThreads()
+    {
+        return config.getParallelThreads();
     }
 
     public int[] getDimensions()
@@ -437,5 +456,16 @@ public class NeuralNetwork
         if (getClass() != obj.getClass()) return false;
         NeuralNetwork other = (NeuralNetwork)obj;
         return Objects.equals(config, other.config) && equalsMatrix(biases, other.biases) && equalsMatrix(weights, other.weights);
+    }
+
+    /**
+     * Cleanup resources when the neural network is no longer needed.
+     * Should be called when done with parallel training to release thread pool resources.
+     */
+    public void close()
+    {
+        if (matrixOps != null) {
+            matrixOps.close();
+        }
     }
 }
