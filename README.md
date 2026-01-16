@@ -23,6 +23,7 @@ The source is a fork from [Kim Marcel / Basic Neural Network](https://github.com
 - Activation functions: Sigmoid, Tanh, ReLu
 - Adjustable learning rate
 - Fully connected
+- **Parallel training support** for improved performance on large networks
 - Support for genetic algorithms: copy-, mutate-, and merge-functionality
 - Save the weights and biases of a NN to a JSON-file
 - Generate a NeuralNetwork-object from a JSON-file
@@ -104,6 +105,35 @@ NeuralNetwork merged = nnA.merge(nnB, 0.2);
 // Mutate the weights and biases of a Neural Network with custom probability
 nn.mutate(0.1);
 ```
+
+Enable parallel training for faster performance on large networks:
+```java
+// Enable parallel training with default thread count (uses all available CPU cores)
+NeuralNetwork parallelNN = NetworkBuilder.create(100, 50)
+    .setHiddenLayers(3, 200)
+    .enableParallelTraining()
+    .build();
+
+// Enable parallel training with custom thread count
+NeuralNetwork customParallelNN = NetworkBuilder.create(100, 50)
+    .setHiddenLayers(2, 150)
+    .enableParallelTraining(4)  // Use 4 threads
+    .build();
+
+// Disable parallel training (use sequential operations)
+NeuralNetwork sequentialNN = NetworkBuilder.create(2, 1)
+    .setHiddenLayers(1, 4)
+    .disableParallelTraining()
+    .build();
+
+// Remember to cleanup parallel networks when done
+parallelNN.close();
+customParallelNN.close();
+// Sequential networks don't need explicit cleanup
+```
+
+**Note:** Parallel training provides performance benefits primarily for large networks (100+ nodes per layer). For small networks, sequential training may actually be faster due to parallelization overhead.
+
 ## Examples
 
 - [XOR solved with Basic Neural Network Library](https://github.com/kim-marcel/xor_with_nn)
